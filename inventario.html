@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #1d1d1d;
+            color: white;
+            margin: 0;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        .menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            width: 350px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+        }
+        .inventario-item {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .inventario-item p {
+            margin: 0;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .volver {
+            margin-top: 20px;
+            background-color: #FF5733;
+        }
+        .volver:hover {
+            background-color: #C70039;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu">
+        <h1>Inventario</h1>
+        <div id="lista-inventario">
+            <!-- El inventario se generará dinámicamente -->
+        </div>
+        <button class="volver" onclick="volverAlMenu()">Volver</button>
+    </div>
+
+    <div class="menu" id="equipado" style="margin-top: 30px;">
+        <h2>Equipamiento Actual</h2>
+        <p id="arma-equipada">Arma: Ninguna</p>
+        <p id="armadura-equipada">Armadura: Ninguna</p>
+    </div>
+
+    <script>
+        // Recuperar datos del inventario y equipamiento desde localStorage
+        const inventario = JSON.parse(localStorage.getItem("inventario")) || [];
+        let equipamiento = JSON.parse(localStorage.getItem("equipamiento")) || {
+            arma: null,
+            armadura: null
+        };
+
+        // Referencias al DOM
+        const listaInventario = document.getElementById("lista-inventario");
+        const armaEquipada = document.getElementById("arma-equipada");
+        const armaduraEquipada = document.getElementById("armadura-equipada");
+
+        // Mostrar el inventario
+        function mostrarInventario() {
+            listaInventario.innerHTML = ""; // Limpiar el contenido
+
+            if (inventario.length === 0) {
+                // Si está vacío, mostrar un mensaje
+                listaInventario.innerHTML = "<p>El inventario está vacío.</p>";
+            } else {
+                // Si hay objetos, generarlos dinámicamente
+                inventario.forEach((objeto, index) => {
+                    const itemDiv = document.createElement("div");
+                    itemDiv.className = "inventario-item";
+                    itemDiv.innerHTML = `
+                        <p>${index + 1}. ${objeto}</p>
+                        <button onclick="equiparObjeto('${objeto}', ${index})">Equipar</button>
+                        <button onclick="eliminarObjeto(${index})">Eliminar</button>
+                    `;
+                    listaInventario.appendChild(itemDiv);
+                });
+            }
+        }
+
+        // Equipar un objeto
+        function equiparObjeto(objeto, indice) {
+            const tipo = determinarTipoObjeto(objeto);
+
+            if (tipo === "arma") {
+                if (equipamiento.arma) {
+                    alert(`Ya tienes equipada un arma: ${equipamiento.arma}.`);
+                } else {
+                    equipamiento.arma = objeto;
+                    alert(`${objeto} equipada como arma.`);
+                }
+            } else if (tipo === "armadura") {
+                if (equipamiento.armadura) {
+                    alert(`Ya tienes equipada una armadura: ${equipamiento.armadura}.`);
+                } else {
+                    equipamiento.armadura = objeto;
+                    alert(`${objeto} equipada como armadura.`);
+                }
+            } else {
+                alert("No puedes equipar este objeto.");
+                return;
+            }
+
+            // Guardar el equipamiento en localStorage
+            localStorage.setItem("equipamiento", JSON.stringify(equipamiento));
+            actualizarEquipamiento();
+        }
+
+        // Determinar el tipo de objeto (arma o armadura)
+        function determinarTipoObjeto(objeto) {
+            if (["Navaja", "Pincho", "Puñal"].includes(objeto)) {
+                return "arma";
+            } else if (["Chaleco Portero Sugaro", "Cadena de Cebo"].includes(objeto)) {
+                return "armadura";
+            } else {
+                return "otro";
+            }
+        }
+
+        // Eliminar un objeto del inventario
+        function eliminarObjeto(indice) {
+            inventario.splice(indice, 1); // Eliminar el objeto del array
+            localStorage.setItem("inventario", JSON.stringify(inventario)); // Actualizar localStorage
+            mostrarInventario(); // Refrescar la lista
+        }
+
+        // Actualizar la sección de equipamiento
+        function actualizarEquipamiento() {
+            armaEquipada.textContent = `Arma: ${equipamiento.arma || "Ninguna"}`;
+            armaduraEquipada.textContent = `Armadura: ${equipamiento.armadura || "Ninguna"}`;
+        }
+
+        // Volver al menú principal
+        function volverAlMenu() {
+            window.location.href = "menu-juego.html";
+        }
+
+        // Inicializar
+        mostrarInventario();
+        actualizarEquipamiento();
+    </script>
+</body>
+</html>

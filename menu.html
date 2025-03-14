@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #1d1d1d;
+            color: white;
+            margin: 0;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        .menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            width: 350px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+        }
+        .articulo {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+        }
+        .articulo p {
+            margin: 5px 0;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .volver {
+            margin-top: 20px;
+            background-color: #FF5733;
+        }
+        .volver:hover {
+            background-color: #C70039;
+        }
+        #oro {
+            font-weight: bold;
+            color: gold;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu">
+        <h1>Tienda</h1>
+        <p>Oro disponible: <span id="oro"></span></p>
+        <div id="lista-articulos">
+            <!-- Los artículos se generarán dinámicamente -->
+        </div>
+        <button class="volver" onclick="volverAlMenu()">Volver</button>
+    </div>
+
+    <script>
+        // Inicialización de oro y recuperación de inventario
+        let oroJugador = parseInt(localStorage.getItem("oro")) || 200; // Oro inicial si no existe
+        const inventario = JSON.parse(localStorage.getItem("inventario")) || [];
+
+        // Lista de artículos de la tienda
+        const articulos = [
+            { nombre: "Navaja", tipo: "Arma", precio: 50 },
+            { nombre: "Pincho", tipo: "Arma", precio: 70 },
+            { nombre: "Puñal", tipo: "Arma", precio: 100 },
+            { nombre: "Chaleco Portero Sugaro", tipo: "Armadura", precio: 80 },
+            { nombre: "Cadena de Cebo", tipo: "Armadura", precio: 120 }
+        ];
+
+        // Referencias al DOM
+        const listaArticulos = document.getElementById("lista-articulos");
+        const oroDisplay = document.getElementById("oro");
+
+        // Mostrar el oro disponible
+        function actualizarOro() {
+            oroDisplay.textContent = oroJugador;
+        }
+
+        // Mostrar los artículos en la tienda
+        function mostrarArticulos() {
+            articulos.forEach((articulo, index) => {
+                const itemDiv = document.createElement("div");
+                itemDiv.className = "articulo";
+                itemDiv.innerHTML = `
+                    <p><strong>${articulo.nombre}</strong></p>
+                    <p>Tipo: ${articulo.tipo}</p>
+                    <p>Precio: ${articulo.precio} monedas</p>
+                    <button onclick="comprarArticulo(${index})">Comprar</button>
+                `;
+                listaArticulos.appendChild(itemDiv);
+            });
+        }
+
+        // Comprar un artículo
+        function comprarArticulo(indice) {
+            const articulo = articulos[indice];
+
+            // Verificar si el jugador tiene suficiente oro
+            if (oroJugador >= articulo.precio) {
+                oroJugador -= articulo.precio; // Restar el precio del oro
+                inventario.push(articulo.nombre); // Agregar el objeto al inventario
+
+                // Guardar los cambios en localStorage
+                localStorage.setItem("oro", oroJugador);
+                localStorage.setItem("inventario", JSON.stringify(inventario));
+
+                // Actualizar la UI
+                actualizarOro();
+                alert(`Has comprado ${articulo.nombre}. Te quedan ${oroJugador} monedas.`);
+            } else {
+                alert("No tienes suficiente oro para comprar este artículo.");
+            }
+        }
+
+        // Función para volver al menú del juego
+        function volverAlMenu() {
+            window.location.href = "menu-juego.html"; // Redirigir al menú del juego
+        }
+
+        // Inicialización de la tienda
+        actualizarOro();
+        mostrarArticulos();
+    </script>
+</body>
+</html>

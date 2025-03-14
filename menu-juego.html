@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menú del Juego</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #1d1d1d;
+            color: white;
+            margin: 0;
+        }
+        h1 {
+            margin-top: 20px;
+        }
+        button {
+            margin: 10px;
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+        }
+    </style>
+</head>
+<body>
+    <div class="menu">
+        <h1>Menú del Juego</h1>
+        <button onclick="window.location.href='inventario.html'">Ir al Inventario</button>
+        <button onclick="window.location.href='menu.html'">Ir a la Tienda</button>
+        <button onclick="iniciarCombate()">Combate</button>
+        <button onclick="guardarPartida()">Guardar Partida</button>
+        <button onclick="salir()">Salir</button>
+    </div>
+
+    <script>
+        // Función para iniciar un combate (puedes personalizar más adelante)
+        function iniciarCombate() {
+            alert("Funcionalidad de combate aún no implementada.");
+        }
+
+        // Función para guardar la partida en localStorage
+        function guardarPartida() {
+            // Ejemplo de datos de partida (puedes expandir según necesites)
+            const datosPartida = {
+                inventario: JSON.parse(localStorage.getItem("inventario")) || [],
+                nivel: 1, // Nivel del jugador
+                oro: 150, // Cantidad de monedas
+                personaje: JSON.parse(localStorage.getItem("personaje")) || { nombre: "Desconocido" }
+            };
+
+            localStorage.setItem("partidaGuardada", JSON.stringify(datosPartida));
+            alert("Partida guardada exitosamente.");
+        }
+
+        // Función para salir del juego (redirigir al menú principal)
+        function salir() {
+            if (confirm("¿Estás seguro de que quieres salir del juego?")) {
+                window.location.href = "menu-principal.html"; // Cambiar según tu estructura de archivos
+            }
+        }
+    </script>
+</body>
+</html>

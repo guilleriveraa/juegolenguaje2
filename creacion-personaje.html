@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creación de Personaje</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #1d1d1d;
+            color: white;
+            margin: 0;
+        }
+        .menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+        }
+        button {
+            margin: 10px;
+            padding: 15px 30px;
+            font-size: 18px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu">
+        <h1>Crear Personaje</h1>
+        <div>
+            <label for="nombrePersonaje">Nombre del personaje:</label>
+            <input type="text" id="nombrePersonaje" placeholder="Ingresa tu nombre">
+        </div>
+        <div>
+            <label for="razas">Raza:</label>
+            <select id="razas">
+                <option value="Terry">Terry</option>
+                <option value="Cebo">Cebo</option>
+                <option value="Andres Familia">Andres Familia</option>
+            </select>
+        </div>
+        <div>
+            <label for="complexion">Complexión:</label>
+            <select id="complexion">
+                <option value="Flaca">Flaca</option>
+                <option value="Media">Media</option>
+                <option value="Fuerte">Fuerte</option>
+            </select>
+        </div>
+        <div>
+            <label for="altura">Altura:</label>
+            <select id="altura">
+                <option value="Bajo">Bajo</option>
+                <option value="Normal">Normal</option>
+                <option value="Alto">Alto</option>
+            </select>
+        </div>
+        <button onclick="guardarPersonaje()">Guardar Personaje</button>
+    </div>
+
+    <script>
+        function guardarPersonaje() {
+            const nombre = document.getElementById("nombrePersonaje").value.trim();
+            const raza = document.getElementById("razas").value;
+            const complexion = document.getElementById("complexion").value;
+            const altura = document.getElementById("altura").value;
+            const oroInicial = 200; // Oro por defecto
+
+            if (nombre) {
+                // Crear el objeto del personaje
+                const personaje = {
+                    nombre: nombre,
+                    raza: raza,
+                    complexion: complexion,
+                    altura: altura,
+                    oro: oroInicial // Asignar 200 de oro al personaje
+                };
+
+                // Guardar el personaje en localStorage
+                localStorage.setItem("personaje", JSON.stringify(personaje));
+                localStorage.setItem("oro", oroInicial); // Guardar el oro por separado para otras funcionalidades
+
+                alert(`¡Personaje creado!\nNombre: ${personaje.nombre}\nRaza: ${personaje.raza}\nOro inicial: ${personaje.oro}`);
+                window.location.href = "menu-juego.html"; // Redirigir al menú del juego
+            } else {
+                alert("Por favor, ingresa un nombre válido.");
+            }
+        }
+    </script>
+</body>
+</html>
