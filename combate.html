@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combate</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #1d1d1d;
+            color: white;
+            margin: 0;
+        }
+        .combate-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 30px;
+        }
+        .combatiente {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            width: 40%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s;
+        }
+        .barra-salud {
+            height: 30px;
+            background-color: #333;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .salud-actual {
+            height: 100%;
+            background-color: #e74c3c;
+            width: 100%;
+            transition: width 0.3s;
+        }
+        .acciones {
+            margin-top: 30px;
+        }
+        button {
+            margin: 10px;
+            padding: 12px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .atacar {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .defender {
+            background-color: #3498db;
+            color: white;
+        }
+        .huir {
+            background-color: #f39c12;
+            color: white;
+        }
+        button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            transform: scale(1.05);
+            opacity: 0.9;
+        }
+        .log-combate {
+            margin-top: 30px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: left;
+        }
+        .mensaje {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #333;
+        }
+        .turno-indicador {
+            font-weight: bold;
+            color: #f1c40f;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        .defensa-activa {
+            border: 2px solid #3498db;
+            box-shadow: 0 0 15px #3498db;
+        }
+        .atacando {
+            border: 2px solid #e74c3c;
+            box-shadow: 0 0 15px #e74c3c;
+            transform: scale(1.02);
+        }
+        .salud-critica {
+            background-color: #ff0000 !important;
+        }
+        .recompensa {
+            color: #2ecc71;
+            font-weight: bold;
+            animation: pulse 1s infinite alternate;
+        }
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+        .imagen-enemigo img {
+            max-width: 150px;
+            max-height: 150px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Combate</h1>
+    
+    <div id="indicador-turno" class="turno-indicador">Tu turno</div>
+    
+    <div class="combate-container">
+        <div class="combatiente" id="jugador">
+            <h2 id="nombre-jugador">Jugador</h2>
+            <div class="barra-salud">
+                <div class="salud-actual" id="salud-jugador"></div>
+            </div>
+            <p>Salud: <span id="salud-jugador-texto">100/100</span></p>
+            <p>Ataque: <span id="ataque-jugador">10</span></p>
+            <p>Defensa: <span id="defensa-jugador">5</span></p>
+            <p>Arma: <span id="arma-jugador">Ninguna</span></p>
+            <p>Armadura: <span id="armadura-jugador">Ninguna</span></p>
+            <p id="estado-jugador"></p>
+        </div>
+        
+        <div class="combatiente" id="enemigo">
+            <h2 id="nombre-enemigo">Enemigo</h2>
+            <div class="imagen-enemigo">
+                <img id="imagen-enemigo" src="" alt="Imagen del enemigo">
+            </div>
+            <div class="barra-salud">
+                <div class="salud-actual" id="salud-enemigo"></div>
+            </div>
+            <p>Salud: <span id="salud-enemigo-texto">100/100</span></p>
+            <p>Ataque: <span id="ataque-enemigo">10</span></p>
+            <p>Defensa: <span id="defensa-enemigo">5</span></p>
+            <p id="estado-enemigo"></p>
+        </div>
+    </div>
+    
+    <div class="acciones" id="acciones">
+        <button class="atacar" id="btn-atacar" onclick="realizarAccion('atacar')">Atacar</button>
+        <button class="defender" id="btn-defender" onclick="realizarAccion('defender')">Defender</button>
+        <button class="huir" id="btn-huir" onclick="huirCombate()">Huir</button>
+    </div>
+    
+    <div class="log-combate" id="log-combate">
+        <div class="mensaje">El combate ha comenzado!</div>
+    </div>
+
+    <script>
+        // Definición de los 5 enemigos 
+        const enemigos = [
+            {
+                nombre: "Pardi",
+                salud: 100,
+                ataque: 8,
+                defensa: 6,
+                oro: 50,
+                exp: 20,
+                imagen: "pardi.jpg",
+                descripcion: "Se quedo sin añigos por que los robaba, ahora se dedica a trapichear con carvallo"
+            },
+            {
+                nombre: "Orlando y Cavanillas",
+                salud: 120,
+                ataque: 10,
+                defensa: 5,
+                oro: 70,
+                exp: 30,
+                imagen: "orlandoycavanillas.jpg",
+                descripcion: "Policias flipados e inaguantables(se creen importantes)"
+            },
+            {
+                nombre: "Justi",
+                salud: 80,
+                ataque: 12,
+                defensa: 4,
+                oro: 40,
+                exp: 25,
+                imagen: "justi.jpg",
+                descripcion: "Profesora cabrona, una alumna la tiro por las escaleras"
+            },
+            {
+                nombre: "Hichan",
+                salud: 110,
+                ataque: 7,
+                defensa: 8,
+                oro: 60,
+                exp: 35,
+                imagen: "hichan.jpg",
+                descripcion: "Se fue del pueblo por problemas con los gitanos de plasencia, ahora vive en barcelona"
+            },
+            {
+                nombre: "Wally",
+                salud: 150,
+                ataque: 9,
+                defensa: 7,
+                oro: 100,
+                exp: 50,
+                imagen: "wally.jpg",
+                descripcion: "Conocido por ser camello con 12 años y quemar contenedores"
+            }
+        ];
+
+        // Variables del combate
+        let jugador = {
+            nombre: "",
+            saludMax: 100,
+            saludActual: 100,
+            ataqueBase: 10,
+            defensaBase: 5,
+            defendiendo: false,
+            arma: null,
+            armadura: null,
+            ataqueTotal: 10,
+            defensaTotal: 5,
+            oro: 0,
+            experiencia: 0,
+            nivel: 1,
+            expParaSubir: 100
+        };
+        
+        let enemigoActual = null;
+        let turnoJugador = true;
+        let combateActivo = true;
+        
+        // Daños base de armas
+        const danoArmas = {
+            "Navaja": 5,
+            "Pincho": 7,
+            "Puñal": 10,
+            "Ninguna": 0
+        };
+        
+        // Defensa de armaduras
+        const defensaArmaduras = {
+            "Chaleco Portero Sugaro": 5,
+            "Cadena de Cebo": 8,
+            "Ninguna": 0
+        };
+        
+        // Inicializar combate
+        function iniciarCombate() {
+            try {
+                // Cargar datos del jugador con manejo de errores
+                const personajeGuardado = JSON.parse(localStorage.getItem("personaje")) || {};
+                const equipamiento = JSON.parse(localStorage.getItem("equipamiento")) || {};
+                const datosJugador = JSON.parse(localStorage.getItem("datosJugador")) || {};
+                
+                jugador.nombre = personajeGuardado.nombre || "Jugador";
+                jugador.arma = equipamiento.arma || "Ninguna";
+                jugador.armadura = equipamiento.armadura || "Ninguna";
+                
+                // Cargar progreso del jugador con valores por defecto
+                jugador.oro = parseInt(datosJugador.oro) || 200;
+                jugador.experiencia = parseInt(datosJugador.experiencia) || 0;
+                jugador.nivel = parseInt(datosJugador.nivel) || 1;
+                jugador.expParaSubir = parseInt(datosJugador.expParaSubir) || 100;
+                
+                // Aplicar bonificaciones de equipo
+                jugador.ataqueTotal = jugador.ataqueBase + (danoArmas[jugador.arma] || 0);
+                jugador.defensaTotal = jugador.defensaBase + (defensaArmaduras[jugador.armadura] || 0);
+                
+                // Seleccionar enemigo aleatorio
+                const indiceAleatorio = Math.floor(Math.random() * enemigos.length);
+                enemigoActual = {
+                    ...enemigos[indiceAleatorio],
+                    saludActual: enemigos[indiceAleatorio].salud,
+                    defendiendo: false
+                };
+                
+                // Actualizar interfaz
+                document.getElementById("nombre-jugador").textContent = jugador.nombre;
+                document.getElementById("arma-jugador").textContent = jugador.arma;
+                document.getElementById("armadura-jugador").textContent = jugador.armadura;
+                document.getElementById("ataque-jugador").textContent = jugador.ataqueTotal;
+                document.getElementById("defensa-jugador").textContent = jugador.defensaTotal;
+                
+                document.getElementById("nombre-enemigo").textContent = enemigoActual.nombre;
+                document.getElementById("ataque-enemigo").textContent = enemigoActual.ataque;
+                document.getElementById("defensa-enemigo").textContent = enemigoActual.defensa;
+                document.getElementById("salud-enemigo-texto").textContent = `${enemigoActual.saludActual}/${enemigoActual.salud}`;
+                document.getElementById("imagen-enemigo").src = enemigoActual.imagen;
+                
+                actualizarBarrasSalud();
+                actualizarEstadoDefensa();
+                agregarMensaje(`¡Te enfrentas a ${enemigoActual.nombre}! (${enemigoActual.descripcion})`);
+                actualizarInterfazTurno();
+            } catch (error) {
+                console.error("Error al iniciar combate:", error);
+                agregarMensaje("Error al cargar los datos del jugador. Redirigiendo al menú...");
+                setTimeout(() => window.location.href = "menu-juego.html", 2000);
+            }
+        }
+        
+        // Actualizar barras de salud
+        function actualizarBarrasSalud() {
+            const saludJugador = document.getElementById("salud-jugador");
+            const saludEnemigo = document.getElementById("salud-enemigo");
+            const textoJugador = document.getElementById("salud-jugador-texto");
+            const textoEnemigo = document.getElementById("salud-enemigo-texto");
+            
+            const porcentajeJugador = (jugador.saludActual / jugador.saludMax) * 100;
+            const porcentajeEnemigo = (enemigoActual.saludActual / enemigoActual.salud) * 100;
+            
+            saludJugador.style.width = `${porcentajeJugador}%`;
+            saludEnemigo.style.width = `${porcentajeEnemigo}%`;
+            
+            textoJugador.textContent = `${jugador.saludActual}/${jugador.saludMax}`;
+            textoEnemigo.textContent = `${enemigoActual.saludActual}/${enemigoActual.salud}`;
+            
+            // Cambiar color si la salud es crítica
+            saludJugador.classList.toggle("salud-critica", porcentajeJugador < 30);
+            saludEnemigo.classList.toggle("salud-critica", porcentajeEnemigo < 30);
+        }
+        
+        // Actualizar estado de defensa
+        function actualizarEstadoDefensa() {
+            const jugadorElement = document.getElementById("jugador");
+            const enemigoElement = document.getElementById("enemigo");
+            
+            jugadorElement.classList.toggle("defensa-activa", jugador.defendiendo);
+            enemigoElement.classList.toggle("defensa-activa", enemigoActual.defendiendo);
+            
+            document.getElementById("estado-jugador").textContent = jugador.defendiendo ? "Defendiendo" : "";
+            document.getElementById("estado-enemigo").textContent = enemigoActual.defendiendo ? "Defendiendo" : "";
+        }
+        
+        // Actualizar interfaz según el turno
+        function actualizarInterfazTurno() {
+            const indicador = document.getElementById("indicador-turno");
+            const btnAtacar = document.getElementById("btn-atacar");
+            const btnDefender = document.getElementById("btn-defender");
+            const btnHuir = document.getElementById("btn-huir");
+            
+            if (turnoJugador) {
+                indicador.textContent = "Tu turno";
+                btnAtacar.disabled = false;
+                btnDefender.disabled = false;
+                btnHuir.disabled = false;
+            } else {
+                indicador.textContent = `Turno de ${enemigoActual.nombre}`;
+                btnAtacar.disabled = true;
+                btnDefender.disabled = true;
+                btnHuir.disabled = true;
+                
+                // El enemigo realiza su acción después de un breve retraso
+                setTimeout(accionEnemigo, 1500);
+            }
+        }
+        
+        // Realizar acción del jugador
+        function realizarAccion(accion) {
+            if (!combateActivo || !turnoJugador) return;
+            
+            // Aplicar efecto visual de ataque/defensa
+            const jugadorElement = document.getElementById("jugador");
+            jugadorElement.classList.add("atacando");
+            
+            setTimeout(() => {
+                jugadorElement.classList.remove("atacando");
+                
+                switch(accion) {
+                    case "atacar":
+                        jugador.defendiendo = false;
+                        const dano = calcularDano(jugador.ataqueTotal, enemigoActual.defensa);
+                        enemigoActual.saludActual = Math.max(0, enemigoActual.saludActual - dano);
+                        
+                        // Efecto visual en el enemigo
+                        const enemigoElement = document.getElementById("enemigo");
+                        enemigoElement.classList.add("atacando");
+                        setTimeout(() => enemigoElement.classList.remove("atacando"), 300);
+                        
+                        agregarMensaje(`${jugador.nombre} ataca a ${enemigoActual.nombre} y le causa ${dano} de daño!`);
+                        break;
+                        
+                    case "defender":
+                        jugador.defendiendo = true;
+                        agregarMensaje(`${jugador.nombre} se prepara para defender!`);
+                        break;
+                }
+                
+                actualizarBarrasSalud();
+                actualizarEstadoDefensa();
+                
+                // Verificar si el enemigo murió
+                if (enemigoActual.saludActual <= 0) {
+                    finCombate(true);
+                    return;
+                }
+                
+                // Cambiar turno al enemigo
+                turnoJugador = false;
+                actualizarInterfazTurno();
+            }, 300);
+        }
+        
+        // Acción del enemigo
+        function accionEnemigo() {
+            if (!combateActivo) return;
+            
+            // Efecto visual de preparación
+            const enemigoElement = document.getElementById("enemigo");
+            enemigoElement.classList.add("atacando");
+            
+            setTimeout(() => {
+                enemigoElement.classList.remove("atacando");
+                
+                // El enemigo elige aleatoriamente entre atacar (70%) o defender (30%)
+                const accionEnemigo = Math.random() < 0.7 ? "atacar" : "defender";
+                
+                if (accionEnemigo === "atacar") {
+                    enemigoActual.defendiendo = false;
+                    let dano = calcularDano(enemigoActual.ataque, jugador.defensaTotal);
+                    
+                    // Reducir daño si el jugador se está defendiendo
+                    if (jugador.defendiendo) {
+                        dano = Math.floor(dano * 0.5);
+                        agregarMensaje(`${enemigoActual.nombre} ataca, pero ${jugador.nombre} se defiende!`);
+                    }
+                    
+                    // Efecto visual en el jugador
+                    const jugadorElement = document.getElementById("jugador");
+                    jugadorElement.classList.add("atacando");
+                    setTimeout(() => jugadorElement.classList.remove("atacando"), 300);
+                    
+                    jugador.saludActual = Math.max(0, jugador.saludActual - dano);
+                    agregarMensaje(`${enemigoActual.nombre} ataca a ${jugador.nombre} y le causa ${dano} de daño!`);
+                } else {
+                    enemigoActual.defendiendo = true;
+                    agregarMensaje(`${enemigoActual.nombre} se prepara para defender!`);
+                }
+                
+                actualizarBarrasSalud();
+                actualizarEstadoDefensa();
+                jugador.defendiendo = false;
+                
+                // Verificar si el jugador murió
+                if (jugador.saludActual <= 0) {
+                    finCombate(false);
+                    return;
+                }
+                
+                // Cambiar turno al jugador
+                turnoJugador = true;
+                actualizarInterfazTurno();
+            }, 300);
+        }
+        
+        // Calcular daño
+        function calcularDano(ataque, defensa) {
+            const danoBase = Math.max(1, Math.floor(ataque * (1 - defensa / (defensa + 10))));
+            const variacion = Math.floor(Math.random() * 5); // Variación aleatoria
+            return danoBase + variacion;
+        }
+        
+        // Huir del combate
+        function huirCombate() {
+            const exito = Math.random() > 0.5; // 50% de probabilidad de huir
+            
+            if (exito) {
+                agregarMensaje(`${jugador.nombre} ha huido del combate!`);
+                setTimeout(() => {
+                    window.location.href = "menu-juego.html";
+                }, 1500);
+            } else {
+                agregarMensaje(`${jugador.nombre} intenta huir pero falla!`);
+                turnoJugador = false;
+                actualizarInterfazTurno();
+            }
+        }
+        
+        // Finalizar combate
+        function finCombate(victoria) {
+            combateActivo = false;
+            document.getElementById("btn-atacar").disabled = true;
+            document.getElementById("btn-defender").disabled = true;
+            document.getElementById("btn-huir").disabled = true;
+            
+            if (victoria) {
+                // Calcular recompensas
+                const oroGanado = enemigoActual.oro;
+                const expGanada = enemigoActual.exp;
+                
+                // Aplicar recompensas
+                jugador.oro += oroGanado;
+                jugador.experiencia += expGanada;
+                
+                // Verificar si sube de nivel
+                let mensajeNivel = "";
+                if (jugador.experiencia >= jugador.expParaSubir) {
+                    jugador.nivel++;
+                    jugador.experiencia -= jugador.expParaSubir;
+                    jugador.expParaSubir = Math.floor(jugador.expParaSubir * 1.5);
+                    jugador.ataqueBase += 2;
+                    jugador.defensaBase += 1;
+                    jugador.saludMax += 20;
+                    jugador.saludActual = jugador.saludMax;
+                    
+                    mensajeNivel = `<span class="recompensa">¡Has subido al nivel ${jugador.nivel}!</span>`;
+                }
+                
+                // Guardar progreso
+                const datosJugador = {
+                    oro: jugador.oro,
+                    experiencia: jugador.experiencia,
+                    nivel: jugador.nivel,
+                    expParaSubir: jugador.expParaSubir
+                };
+                localStorage.setItem("datosJugador", JSON.stringify(datosJugador));
+                
+                // Mostrar mensajes
+                agregarMensaje(`¡Has derrotado a ${enemigoActual.nombre}!`);
+                agregarMensaje(`<span class="recompensa">+${oroGanado} monedas de oro</span>`);
+                agregarMensaje(`<span class="recompensa">+${expGanada} puntos de experiencia</span>`);
+                if (mensajeNivel) agregarMensaje(mensajeNivel);
+                agregarMensaje("¡Combate terminado! Volviendo al menú...");
+                
+                setTimeout(() => {
+                    window.location.href = "menu-juego.html";
+                }, 4000);
+            } else {
+                agregarMensaje(`¡Has sido derrotado por ${enemigoActual.nombre}!`);
+                agregarMensaje("Volviendo al menú principal...");
+                
+                setTimeout(() => {
+                    window.location.href = "menu-principal.html";
+                }, 3000);
+            }
+        }
+        
+        // Agregar mensaje al log
+        function agregarMensaje(mensaje) {
+            const log = document.getElementById("log-combate");
+            const elementoMensaje = document.createElement("div");
+            elementoMensaje.className = "mensaje";
+            
+            // Permitir HTML en los mensajes para estilos
+            if (typeof mensaje === 'string' && mensaje.startsWith('<')) {
+                elementoMensaje.innerHTML = mensaje;
+            } else {
+                elementoMensaje.textContent = mensaje;
+            }
+            
+            log.appendChild(elementoMensaje);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        // Iniciar el combate cuando se carga la página
+        window.onload = iniciarCombate;
+    </script>
+</body>
+</html>
