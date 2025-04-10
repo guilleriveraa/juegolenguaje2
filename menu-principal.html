@@ -6,12 +6,17 @@
     <title>Menú Principal</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #1d1d1d;
-            color: white;
-            margin: 0;
-        }
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        background: url(menuprincipal.png);
+        background-size: cover;
+        color: white;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
         h1 {
             margin-top: 20px;
         }
@@ -57,12 +62,10 @@
     </div>
 
     <script>
-        // Función para iniciar una nueva partida
         function nuevaPartida() {
             window.location.href = "creacion-personaje.html";
         }
 
-        // Función para cargar una partida guardada
         function cargarPartida() {
             const datosGuardados = localStorage.getItem("partidaGuardada");
 
@@ -75,22 +78,26 @@
             }
         }
 
-        // Función para borrar una partida guardada
         function borrarPartida() {
-            const confirmacion = confirm("¿Estás seguro de que quieres borrar la partida guardada? Esta acción no se puede deshacer.");
-            if (confirmacion) {
-                localStorage.removeItem("partidaGuardada"); // Elimina los datos guardados
-                alert("Partida guardada borrada exitosamente.");
-            }
-        }
+    const confirmacion = confirm("¿Estás seguro de que quieres borrar la partida guardada? Esta acción no se puede deshacer.");
+    if (confirmacion) {
+        // Eliminar todos los datos relacionados con la partida
+        localStorage.removeItem("partidaGuardada");
+        localStorage.removeItem("inventario");
+        localStorage.removeItem("equipamiento");
+        localStorage.removeItem("datosJugador");
+        localStorage.removeItem("personaje");
+        localStorage.removeItem("oro");
+        alert("Partida guardada borrada exitosamente. Todos los datos han sido eliminados.");
+    }
 
-        // Función para salir del juego
         function salir() {
             if (confirm("¿Estás seguro de que quieres salir del juego?")) {
                 alert("Gracias por jugar. ¡Hasta la próxima!");
-                window.close(); // Puede no funcionar en algunos navegadores
+                window.close(); 
             }
         }
+        }    
     </script>
 </body>
 </html>
